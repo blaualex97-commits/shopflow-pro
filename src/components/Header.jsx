@@ -1,11 +1,9 @@
-
 import {
   Heart,
   Home,
   Menu,
   Search,
   ShoppingBag,
-  Tag,
   UserRound,
   X,
 } from "lucide-react";
@@ -15,6 +13,7 @@ import {
   NavLink,
   useLocation,
 } from "react-router-dom";
+
 import { useLanguage } from "../context/LanguageContext";
 import { useShop } from "../context/ShopContext";
 import LanguageSelector from "./LanguageSelector";
@@ -50,21 +49,26 @@ function Header() {
 
   return (
     <>
+      {/* FIXED MOBILE / STICKY DESKTOP HEADER */}
       <header
         className="
-          sticky top-0 z-40
+          fixed left-0 right-0 top-0 z-40
           border-b border-white/[0.06]
-          bg-[#070a0c]/86
+          bg-[#070a0c]/94
           backdrop-blur-2xl
-          supports-[backdrop-filter]:bg-[#070a0c]/74
+          supports-[backdrop-filter]:bg-[#070a0c]/88
+          md:sticky
+          md:bg-[#070a0c]/86
+          md:supports-[backdrop-filter]:bg-[#070a0c]/74
         "
       >
-        {/* DESKTOP / TABLET TOP BAR */}
         <div className="mx-auto w-full max-w-[1500px] px-3 sm:px-4 md:px-5 lg:px-6">
           <div
             className="
-              flex min-h-[68px] items-center gap-3
-              sm:min-h-[72px]
+              flex min-h-[60px] items-center gap-2
+              sm:min-h-[64px]
+              md:min-h-[72px]
+              md:gap-3
               lg:min-h-[78px]
             "
           >
@@ -72,15 +76,16 @@ function Header() {
             <Link
               to="/"
               onClick={closeMobileMenu}
-              className="group flex shrink-0 items-center gap-3"
+              className="group flex min-w-0 shrink-0 items-center gap-3"
             >
               <div
                 className="
                   relative grid
-                  h-10 w-10
+                  h-9 w-9
+                  shrink-0
                   place-items-center
                   overflow-hidden
-                  rounded-[14px]
+                  rounded-[13px]
                   bg-emerald-400
                   font-black
                   text-black
@@ -89,7 +94,8 @@ function Header() {
                   duration-300
                   group-hover:scale-[1.03]
                   group-hover:shadow-[0_0_38px_rgba(32,227,162,0.16)]
-                  sm:h-11 sm:w-11
+                  sm:h-10 sm:w-10
+                  md:h-11 md:w-11
                 "
               >
                 <span className="relative z-10">
@@ -185,18 +191,26 @@ function Header() {
             </nav>
 
             {/* ACTIONS */}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+              {/* LANGUAGE - MOBILE */}
+              <div className="md:hidden">
+                <LanguageSelector />
+              </div>
+
+              {/* LANGUAGE - DESKTOP */}
               <div className="hidden lg:block">
                 <LanguageSelector />
               </div>
 
+              {/* FAVORITES */}
               <Link
                 to="/favorites"
                 className="
                   relative grid
-                  h-10 w-10
+                  h-9 w-9
+                  shrink-0
                   place-items-center
-                  rounded-[13px]
+                  rounded-[12px]
                   border border-white/[0.08]
                   bg-white/[0.035]
                   text-zinc-400
@@ -205,11 +219,12 @@ function Header() {
                   hover:border-emerald-400/20
                   hover:bg-emerald-400/[0.045]
                   hover:text-white
-                  sm:h-11 sm:w-11
+                  sm:h-10 sm:w-10
+                  md:h-11 md:w-11
                 "
                 aria-label={t("nav.favorites")}
               >
-                <Heart size={18} />
+                <Heart size={17} />
 
                 {favorites.length > 0 && (
                   <span
@@ -231,6 +246,7 @@ function Header() {
                 )}
               </Link>
 
+              {/* CART */}
               <button
                 type="button"
                 onClick={() =>
@@ -238,9 +254,10 @@ function Header() {
                 }
                 className="
                   relative grid
-                  h-10 w-10
+                  h-9 w-9
+                  shrink-0
                   place-items-center
-                  rounded-[13px]
+                  rounded-[12px]
                   border border-white/[0.08]
                   bg-white/[0.035]
                   text-zinc-400
@@ -249,11 +266,12 @@ function Header() {
                   hover:border-emerald-400/20
                   hover:bg-emerald-400/[0.045]
                   hover:text-white
-                  sm:h-11 sm:w-11
+                  sm:h-10 sm:w-10
+                  md:h-11 md:w-11
                 "
                 aria-label="Cart"
               >
-                <ShoppingBag size={18} />
+                <ShoppingBag size={17} />
 
                 {cartCount > 0 && (
                   <span
@@ -275,6 +293,7 @@ function Header() {
                 )}
               </button>
 
+              {/* ACCOUNT DESKTOP */}
               <Link
                 to="/account"
                 className="
@@ -380,6 +399,22 @@ function Header() {
         </div>
       </header>
 
+      {/*
+        Header-ul este fixed pe mobil, deci avem nevoie
+        de spațiu REAL înainte de conținut.
+
+        Acesta NU este vechiul spacer de 76px de după nav.
+        Compensează înălțimea top header + search.
+      */}
+      <div
+        className="
+          h-[118px]
+          sm:h-[122px]
+          md:hidden
+        "
+        aria-hidden="true"
+      />
+
       {/* MOBILE APP BOTTOM NAV */}
       <nav
         className="
@@ -415,13 +450,14 @@ function Header() {
             }
           />
 
-          <MobileNavItem
-            to="/products?sort=discount"
-            icon={Tag}
-            label={t("nav.deals")}
-            active={location.search.includes(
-              "sort=discount"
-            )}
+          {/* CART replaces DEALS on mobile */}
+          <MobileCartItem
+            icon={ShoppingBag}
+            label="Cart"
+            badge={cartCount}
+            onClick={() =>
+              setIsCartOpen(true)
+            }
           />
 
           <MobileNavItem
@@ -509,6 +545,63 @@ function MobileNavItem({
         <span className="absolute bottom-0 h-[2px] w-5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(32,227,162,0.6)]" />
       )}
     </Link>
+  );
+}
+
+function MobileCartItem({
+  icon: Icon,
+  label,
+  badge = 0,
+  onClick,
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="
+        relative flex min-w-0 flex-col
+        items-center justify-center
+        gap-1
+        rounded-[14px]
+        px-1 py-2
+        text-[10px]
+        font-black
+        text-zinc-600
+        transition
+        hover:bg-emerald-400/[0.09]
+        hover:text-emerald-400
+      "
+      aria-label={label}
+    >
+      <div className="relative">
+        <Icon
+          size={19}
+          strokeWidth={2}
+        />
+
+        {badge > 0 && (
+          <span
+            className="
+              absolute -right-2.5 -top-2
+              grid min-h-4 min-w-4
+              place-items-center
+              rounded-full
+              bg-emerald-400
+              px-1
+              text-[8px]
+              font-black
+              text-black
+            "
+          >
+            {badge}
+          </span>
+        )}
+      </div>
+
+      <span className="max-w-full truncate">
+        {label}
+      </span>
+    </button>
   );
 }
 
